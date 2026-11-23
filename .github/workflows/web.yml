@@ -1,8 +1,12 @@
 name: Deploy web app to GitHub Pages
 
-# FreshBox の Web 版をビルドして GitHub Pages に公開する。
+# FreshBox の Web 版をビルドして gh-pages ブランチに公開する。
 # main への push（freshbox_app 配下の変更時）で自動実行。
 # 手動実行も可（Actions タブ → Deploy web app to GitHub Pages → Run workflow）。
+#
+# 初回セットアップ（リポジトリ Settings → Pages）:
+#   Source: Deploy from a branch / Branch: gh-pages / (root)
+# ※ gh-pages ブランチはこのワークフローの初回実行で自動作成される。
 
 on:
   push:
@@ -13,9 +17,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: pages
@@ -24,9 +26,6 @@ concurrency:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -47,16 +46,9 @@ jobs:
           flutter pub get
           flutter build web --release --base-href /${{ github.event.repository.name }}/
 
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
+      - name: Publish built site to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          enablement: true
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: freshbox_app/build/web
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: freshbox_app/build/web
+          publish_branch: gh-pages
