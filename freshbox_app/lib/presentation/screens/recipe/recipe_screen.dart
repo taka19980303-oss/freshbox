@@ -24,7 +24,7 @@ class RecipeScreen extends ConsumerStatefulWidget {
 class _RecipeScreenState extends ConsumerState<RecipeScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   
-  // AI献立計画関連の状態
+  // 献立計画関連の状態
   List<MealPlanDay>? _activePlan;
   bool _isLoadingPlan = false;
   String _loadingMessage = '';
@@ -43,29 +43,13 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> with SingleTickerPr
     super.dispose();
   }
 
-  /// AI風のロード演出を伴う献立生成
+  /// 献立生成（ローカルルールエンジンで即時生成する）
   Future<void> _generateMealPlan(List<Ingredient> inventory) async {
     setState(() {
       _isLoadingPlan = true;
-      _loadingMessage = '冷蔵庫の在庫データを分析中... 📡';
+      _loadingMessage = '在庫から献立を組み立てています... 🍱';
     });
     await HapticFeedback.mediumImpact();
-
-    // 演出用のウェイト
-    await Future.delayed(const Duration(milliseconds: 700));
-    if (!mounted) return;
-    setState(() => _loadingMessage = '消費期限の近い食材をリストアップ中... 🥩');
-
-    await Future.delayed(const Duration(milliseconds: 800));
-    if (!mounted) return;
-    setState(() => _loadingMessage = '最適な栄養バランスと調理手順を計算中... 🥗');
-
-    await Future.delayed(const Duration(milliseconds: 800));
-    if (!mounted) return;
-    setState(() => _loadingMessage = '3日分の献立スケジュールを構築完了！ 🍱');
-
-    await Future.delayed(const Duration(milliseconds: 500));
-    if (!mounted) return;
 
     final plan = MealPlannerEngine.generate3DayPlan(inventory);
     setState(() {
@@ -73,7 +57,7 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> with SingleTickerPr
       _isLoadingPlan = false;
       _addedToShopping.clear();
     });
-    await HapticFeedback.successImpact();
+    await HapticFeedback.mediumImpact();
   }
 
   Future<void> _addMissingIngredient(MealIngredientReq req) async {
@@ -130,7 +114,7 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> with SingleTickerPr
               labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
               tabs: const [
                 Tab(text: '今日のレシピ提案'),
-                Tab(text: 'AI 3日間献立'),
+                Tab(text: '3日間の献立'),
               ],
             ),
           ),
@@ -142,7 +126,7 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> with SingleTickerPr
           // ── タブ1: 今日のレシピ提案 ──
           _buildTodayRecipesTab(context, theme, ingredients),
 
-          // ── タブ2: AI 3日間の献立 ──
+          // ── タブ2: 3日間の献立 ──
           _buildMealPlannerTab(context, theme, ingredients),
         ],
       ),
@@ -252,8 +236,8 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> with SingleTickerPr
                 ),
               );
             },
-            icon: const Icon(Icons.auto_awesome),
-            label: const Text('AIに再提案'),
+            icon: const Icon(Icons.refresh),
+            label: const Text('レシピを更新'),
             backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,
           ).animate().scale(delay: 500.ms, duration: 300.ms),
@@ -290,11 +274,6 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> with SingleTickerPr
                 fontWeight: FontWeight.bold,
               ),
             ).animate(key: ValueKey(_loadingMessage)).fadeIn(duration: 200.ms).slideY(begin: 0.1, end: 0),
-            const SizedBox(height: 8),
-            const Text(
-              'プレミアム AI献立エンジン起動中...',
-              style: TextStyle(color: AppColors.textTertiary, fontSize: 12),
-            ),
           ],
         ),
       );
@@ -320,7 +299,7 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> with SingleTickerPr
               ),
               const SizedBox(height: 24),
               Text(
-                'AI 3日間献立作成',
+                '3日間の献立作成',
                 style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
@@ -548,7 +527,7 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> with SingleTickerPr
           ),
           const SizedBox(height: 24),
           Text(
-            'AIがレシピを考案中...',
+            'レシピを探しています...',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: AppColors.textSecondary,
@@ -622,7 +601,7 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> with SingleTickerPr
             ),
             const SizedBox(height: 24),
             const Text(
-              '「冷蔵庫」タブの右下の「＋」ボタンから追加するか、\n「スキャン」タブからレシートを読み込めます。',
+              '「冷蔵庫」タブの右下の「＋」ボタンから追加するか、\n「まとめて追加」タブから一括登録もできます。',
               style: TextStyle(color: AppColors.textTertiary, fontSize: 12),
               textAlign: TextAlign.center,
             ),

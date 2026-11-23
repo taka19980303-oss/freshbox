@@ -1,10 +1,5 @@
 /// アプリ定数
 abstract final class AppConstants {
-  // API
-  static const String baseUrl = 'http://localhost:8000';
-  static const String scanReceiptEndpoint = '/api/scan-receipt';
-  static const String suggestRecipeEndpoint = '/api/suggest-recipe';
-
   // 賞味期限しきい値
   static const int expiryWarningDays = 4;  // 4日以下でもうすぐ
   static const int expiryUrgentDays = 2;   // 2日以下で今日使って

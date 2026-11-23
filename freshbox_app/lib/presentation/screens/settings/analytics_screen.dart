@@ -82,9 +82,9 @@ class AnalyticsScreen extends ConsumerWidget {
                     _buildPieChartCard(context, sortedCats, totalCount, isDark),
                     const SizedBox(height: 24),
 
-                    // ── AI健康アドバイス ──
+                    // ── 栄養アドバイス ──
                     Text(
-                      '💡 AI栄養バランス評価',
+                      '💡 栄養バランス評価',
                       style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 12),
@@ -242,7 +242,7 @@ class AnalyticsScreen extends ConsumerWidget {
       default:
         icon = '🍱';
         title = '非常にバランスの良い構成！';
-        description = '特定の食材に偏らず、多種多様なカテゴリが揃っています。この構成であれば、AIレシピ提案からも非常に豊富な種類のメニューを提案することができます。フードロスに気をつけて使い切りましょう。';
+        description = '特定の食材に偏らず、多種多様なカテゴリが揃っています。この構成であれば、レシピ提案でも非常に豊富な種類のメニューを提案できます。フードロスに気をつけて使い切りましょう。';
     }
 
     return Card(
@@ -403,7 +403,7 @@ class AnalyticsScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             const Text(
-              '冷蔵庫に食材が登録されると、カテゴリ別栄養比率やAIアドバイスがここに表示されるようになります。',
+              '冷蔵庫に食材が登録されると、カテゴリ別栄養比率やアドバイスがここに表示されるようになります。',
               textAlign: TextAlign.center,
               style: TextStyle(color: AppColors.textTertiary, fontSize: 13, height: 1.4),
             ),

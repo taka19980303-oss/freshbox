@@ -53,9 +53,9 @@ class AppBottomNav extends StatelessWidget {
               label: 'レシピ',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.document_scanner_outlined),
-              activeIcon: Icon(Icons.document_scanner),
-              label: 'スキャン',
+              icon: Icon(Icons.playlist_add_outlined),
+              activeIcon: Icon(Icons.playlist_add),
+              label: 'まとめて追加',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.shopping_bag_outlined),

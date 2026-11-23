@@ -1,45 +1,34 @@
-# 🍱 FreshBox - 冷蔵庫管理 × AIレシピ提案アプリ
+# 🍱 FreshBox - 冷蔵庫管理アプリ
 
-> 食材の無駄をなくし、毎日の料理を豊かに。Gemini AI搭載の次世代冷蔵庫管理アプリ。
+> 食材の無駄をなくし、毎日の料理を豊かに。速く登録できて、期限がひと目で分かる、使いやすさ重視の冷蔵庫管理アプリ。
+
+**設計方針（2026-11-23 改定）**: AI連携は行わない。アプリは完全ローカル動作（サーバー不要・オフライン可）で、在庫管理の速さと分かりやすさに集中する。
 
 ## 📁 プロジェクト構成
 
 ```
 FreshBox/
-├── freshbox_app/        # Flutter フロントエンド
-└── freshbox_api/        # FastAPI バックエンド
+├── freshbox_app/        # Flutter アプリ本体（これが製品）
+└── freshbox_api/        # FastAPI バックエンド（フェーズ1のモック試作。現行アプリからは未使用）
 ```
 
 ---
 
-## 🚀 クイックスタート
+## ✨ 主な機能
 
-### バックエンド (FastAPI)
-
-```bash
-cd freshbox_api
-
-# 仮想環境を作成・有効化
-python -m venv venv
-.\venv\Scripts\activate      # Windows
-
-# 依存関係インストール
-pip install -r requirements.txt
-
-# 環境変数設定
-copy .env.example .env
-
-# サーバー起動
-uvicorn app.main:app --reload --port 8000
-```
-
-#### API ドキュメント
-- Swagger UI: http://localhost:8000/docs
-- ReDoc:       http://localhost:8000/redoc
+| 機能 | 内容 |
+|------|------|
+| 在庫管理 | カテゴリ・保存場所別の食材リスト、賞味期限の残日数を色で表示 |
+| まとめて追加 | よく買う食材テンプレートをタップで選んで一括登録（数量・期限はその場で調整可） |
+| 連続追加 | 1品ずつ入れる場合も「保存して続けて追加」で画面遷移なしに連続入力 |
+| レシピ提案 | 在庫食材と端末内レシピDBを照合し、使える食材が多い順に提案（通信なし） |
+| 3日間の献立 | 期限の近い食材を優先して使う3日分の献立を自動で組み立て、足りない食材は買い物リストへ |
+| 買い物リスト | 不足食材の管理、節約額・廃棄額の記録 |
+| 期限通知 | 賞味期限が近づいた食材をローカル通知でお知らせ |
 
 ---
 
-### フロントエンド (Flutter)
+## 🚀 クイックスタート（Flutter）
 
 ```bash
 cd freshbox_app
@@ -52,67 +41,9 @@ flutter pub get
 
 # アプリ起動 (デバイス/エミュレータが必要)
 flutter run
-
-# コード生成 (freezed / riverpod)
-dart run build_runner build --delete-conflicting-outputs
 ```
 
----
-
-## 📡 APIエンドポイント (フェーズ1 モック)
-
-### POST `/api/scan-receipt`
-レシート画像をOCR解析して食材リストを返す
-
-```bash
-curl -X POST http://localhost:8000/api/scan-receipt \
-  -F "image=@receipt.jpg"
-```
-
-**Response例:**
-```json
-{
-  "success": true,
-  "purchased_date": "2026-06-25",
-  "store_name": "サンプルスーパー",
-  "ingredients": [
-    { "name": "豚肩ロース（ブロック）", "quantity": 300, "unit": "g", "estimated_expiry_days": 5, "confidence": 0.97 },
-    { "name": "白菜", "quantity": 0.25, "unit": "個", "estimated_expiry_days": 7, "confidence": 0.92 }
-  ],
-  "confidence": 0.93,
-  "message": "4品の食材を検出しました。"
-}
-```
-
-### POST `/api/suggest-recipe`
-在庫食材からAIレシピを提案する
-
-```bash
-curl -X POST http://localhost:8000/api/suggest-recipe \
-  -H "Content-Type: application/json" \
-  -d '{"ingredients": ["豚肩ロース", "白菜", "レモン", "牛タン"]}'
-```
-
-**Response例:**
-```json
-{
-  "recipes": [
-    {
-      "id": "...",
-      "title": "豚肩ロースと白菜のレモン塩鍋",
-      "description": "さっぱりとしたレモンの酸味が豚の旨味を引き立てる...",
-      "used_ingredients": ["豚肩ロース", "白菜", "レモン"],
-      "missing_ingredients": ["長ネギ"],
-      "cooking_time": "25分",
-      "difficulty": "簡単",
-      "calories_estimate": "約420kcal",
-      "tags": ["鍋料理", "冬", "さっぱり"]
-    }
-  ],
-  "total": 3,
-  "generated_at": "2026-06-25T19:30:00"
-}
-```
+サーバーは不要です。データは端末内（Hive）に保存されます。
 
 ---
 
@@ -140,26 +71,19 @@ curl -X POST http://localhost:8000/api/suggest-recipe \
 
 | フェーズ | 内容 | 状態 |
 |---------|------|------|
-| **Phase 1** | コアUI + APIモック | ✅ 完了 |
-| Phase 2 | Firebase Auth + Firestore | 🔜 次回 |
-| Phase 3 | Gemini API 実連携 | 🔜 次回 |
-| Phase 4 | レシートOCR (Cloud Vision) | 🔜 次回 |
-| Phase 5 | 家族間共有機能 | 🔜 次回 |
-| Phase 6 | プッシュ通知 (期限アラート) | 🔜 次回 |
+| **Phase 1** | コアUI + ローカル在庫管理 | ✅ 完了 |
+| **Phase 1.5** | AIモック撤去・完全ローカル化、まとめて追加、連続追加 | ✅ 完了 (2026-11-23) |
+| Phase 2 | 家族間共有（同期基盤の選定から） | 🔜 検討中 |
+| Phase 3 | ウィジェット / iCloud同期の実機対応 | 🔜 検討中 |
 
 ---
 
 ## 🧑‍💻 技術スタック
 
-### フロントエンド
-- Flutter 3.16+
+- Flutter 3.x / Dart 3.x
 - Riverpod 2.x (状態管理)
+- Hive (ローカル永続化)
 - Material Design 3
 - Noto Sans JP (Google Fonts)
 - flutter_animate (マイクロアニメーション)
-
-### バックエンド
-- Python 3.12 + FastAPI 0.110
-- Pydantic v2
-- Gemini 1.5 Pro API (フェーズ3〜)
-- Firebase Firestore (フェーズ2〜)
+- flutter_local_notifications (期限通知)

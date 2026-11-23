@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
@@ -104,7 +105,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
     }
   }
 
-  Future<void> _save() async {
+  Future<void> _save({bool addAnother = false}) async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedCategory == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -142,7 +143,31 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
       await notifier.add(ingredient);
     }
 
-    if (mounted) Navigator.of(context).pop();
+    if (!mounted) return;
+
+    if (addAnother && !_isEditing) {
+      // 連続追加: フォームを初期化して同じ画面にとどまる。
+      // カテゴリと保存場所は引き継ぐ（同じ売り場の食材を続けて入れやすいように）。
+      setState(() {
+        _isSaving = false;
+        _nameController.clear();
+        _quantityController.clear();
+        _memoController.clear();
+        _priceController.clear();
+        _expiryDate = DateTime.now().add(const Duration(days: 7));
+      });
+      _nameFocusNode.requestFocus();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('「${ingredient.name}」を追加しました。続けて入力できます。'),
+          duration: const Duration(seconds: 2),
+          backgroundColor: AppColors.primary,
+        ),
+      );
+      return;
+    }
+
+    Navigator.of(context).pop();
   }
 
   @override
@@ -288,7 +313,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
                     color: Colors.white,
                     child: Container(
                       width: MediaQuery.of(context).size.width - (AppConstants.pagePadding * 2),
-                      maxHeight: 220,
+                      constraints: const BoxConstraints(maxHeight: 220),
                       child: ListView.separated(
                         padding: EdgeInsets.zero,
                         shrinkWrap: true,
@@ -535,6 +560,19 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
                 ),
               ),
             ),
+
+            // ── 連続追加ボタン（新規追加時のみ） ──
+            if (!_isEditing) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 48,
+                child: OutlinedButton.icon(
+                  onPressed: _isSaving ? null : () => _save(addAnother: true),
+                  icon: const Icon(Icons.playlist_add),
+                  label: const Text('保存して続けて追加'),
+                ),
+              ),
+            ],
 
             const SizedBox(height: 40),
           ],

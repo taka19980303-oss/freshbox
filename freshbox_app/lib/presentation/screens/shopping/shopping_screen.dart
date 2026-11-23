@@ -228,7 +228,7 @@ class _ShoppingScreenState extends ConsumerState<ShoppingScreen> {
                       color: Colors.white,
                       child: Container(
                         width: MediaQuery.of(context).size.width - (AppConstants.pagePadding * 2),
-                        maxHeight: 200,
+                        constraints: const BoxConstraints(maxHeight: 200),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: AppColors.divider),
