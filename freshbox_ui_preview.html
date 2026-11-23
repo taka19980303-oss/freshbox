@@ -1,0 +1,2206 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FreshBox - インタラクティブ UI プレビュー</title>
+  <!-- Google Fonts & FontAwesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+JP:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root {
+      /* Light Mode Palette */
+      --primary: #1B6B3A;
+      --primary-light: #4CAF70;
+      --primary-container: #D4EDDA;
+      --on-primary-container: #0A3D1F;
+      --secondary: #E05C2A;
+      --secondary-light: #F28B5F;
+      --secondary-container: #FFFFEDE5;
+      --warning: #E08020;
+      --warning-container: #FFF3E0;
+      --error: #C62828;
+      --error-container: #FFFFEBEE;
+      --background: #FAFAF8;
+      --card-bg: #FFFFFF;
+      --divider: #E8EAE6;
+      --text-primary: #1A1C19;
+      --text-secondary: #5C6360;
+      --text-tertiary: #8B9390;
+      
+      /* App Specific status */
+      --expiry-fresh: #1B6B3A;
+      --expiry-warning: #E08020;
+      --expiry-urgent: #E05C2A;
+      --expiry-expired: #9E9E9E;
+    }
+
+    .dark-theme {
+      /* Dark Mode Palette */
+      --primary: #4CAF70;
+      --primary-light: #81C784;
+      --primary-container: #1B3B2B;
+      --on-primary-container: #C8E6C9;
+      --secondary: #FF8A65;
+      --secondary-light: #FFAB91;
+      --secondary-container: #3E2723;
+      --warning: #FFB74D;
+      --warning-container: #4E342E;
+      --error: #E57373;
+      --error-container: #2C1B1B;
+      --background: #121212;
+      --card-bg: #1E1E1E;
+      --divider: #2D2D2D;
+      --text-primary: #E3E3E3;
+      --text-secondary: #B0B0B0;
+      --text-tertiary: #757575;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      user-select: none;
+    }
+
+    body {
+      background: linear-gradient(135deg, #1B6B3A 0%, #0F3D21 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      color: #333;
+      overflow-x: hidden;
+    }
+
+    /* Container holding the mobile device and information panel */
+    .wrapper {
+      display: flex;
+      flex-direction: row;
+      gap: 40px;
+      max-width: 1100px;
+      width: 100%;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Left panel with description */
+    .info-panel {
+      flex: 1;
+      color: white;
+      max-width: 500px;
+    }
+
+    .info-panel h1 {
+      font-size: 2.5rem;
+      font-weight: 900;
+      margin-bottom: 15px;
+      letter-spacing: -1px;
+      line-height: 1.2;
+      background: linear-gradient(to right, #FFF, #C8E6C9);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .info-panel p {
+      font-size: 1.05rem;
+      line-height: 1.6;
+      margin-bottom: 25px;
+      color: #E2E8F0;
+    }
+
+    .feature-list {
+      list-style: none;
+      margin-bottom: 30px;
+    }
+
+    .feature-list li {
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.95rem;
+      color: #E8F5E9;
+    }
+
+    .feature-list li i {
+      color: #81C784;
+    }
+
+    .badge-premium {
+      background: linear-gradient(45deg, #FFD700, #FFA500);
+      color: #3E2723;
+      font-weight: bold;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      display: inline-block;
+      margin-bottom: 10px;
+    }
+
+    /* Smartphone Mockup Frame */
+    .phone-mockup {
+      width: 380px;
+      height: 780px;
+      background: #000;
+      border-radius: 50px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 12px #222;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      border: 4px solid #333;
+    }
+
+    /* Phone Notch / Dynamic Island */
+    .phone-notch {
+      width: 120px;
+      height: 30px;
+      background: #000;
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      border-bottom-left-radius: 18px;
+      border-bottom-right-radius: 18px;
+      z-index: 1000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .phone-notch::before {
+      content: '';
+      width: 12px;
+      height: 12px;
+      background: #111;
+      border-radius: 50%;
+      position: absolute;
+      left: 20px;
+    }
+
+    .phone-notch::after {
+      content: '';
+      width: 35px;
+      height: 4px;
+      background: #222;
+      border-radius: 2px;
+      position: absolute;
+      right: 20px;
+    }
+
+    /* Inside the phone */
+    .app-container {
+      flex: 1;
+      background-color: var(--background);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      position: relative;
+      padding-top: 30px; /* Space for notch */
+      transition: background-color 0.3s ease;
+    }
+
+    /* App Header */
+    .app-header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      color: white;
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .app-header h2 {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .app-header .header-icons {
+      display: flex;
+      gap: 12px;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+
+    /* Tab Contents */
+    .tab-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      padding-bottom: 80px; /* spacing for bottom navigation */
+    }
+
+    .tab-content::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* Bottom Navigation Bar */
+    .bottom-nav {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 65px;
+      background-color: var(--card-bg);
+      border-top: 1px solid var(--divider);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 100;
+      padding-bottom: 8px; /* space for home indicator */
+      box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.05);
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-tertiary);
+      font-size: 0.7rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: color 0.2s ease;
+      position: relative;
+    }
+
+    .nav-item i {
+      font-size: 1.25rem;
+      margin-bottom: 3px;
+    }
+
+    .nav-item.active {
+      color: var(--primary);
+    }
+
+    .nav-badge {
+      position: absolute;
+      top: -4px;
+      right: -8px;
+      background-color: var(--secondary);
+      color: white;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 10px;
+    }
+
+    /* Refrigerator (Fridge) Tab components */
+    .search-box {
+      flex-shrink: 0;
+      background-color: var(--card-bg);
+      border: 1px solid var(--divider);
+      border-radius: 12px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+      transition: background-color 0.3s, border-color 0.3s;
+    }
+
+    .search-box input {
+      border: none;
+      background: transparent;
+      outline: none;
+      width: 100%;
+      font-size: 0.9rem;
+      color: var(--text-primary);
+    }
+
+    .search-box i {
+      color: var(--text-tertiary);
+    }
+
+    /* Category selector scroll horizontal */
+    .cat-scroll {
+      flex-shrink: 0;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 12px;
+      margin-bottom: 8px;
+    }
+
+    .cat-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    .cat-chip {
+      background-color: var(--card-bg);
+      border: 1px solid var(--divider);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+      color: var(--text-secondary);
+      transition: all 0.2s ease;
+    }
+
+    .cat-chip.active {
+      background-color: var(--primary-container);
+      color: var(--on-primary-container);
+      border-color: transparent;
+    }
+
+    /* Ingredient cards */
+    .ingredients-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .ing-card {
+      background-color: var(--card-bg);
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      border-left: 4px solid var(--border-color, var(--primary));
+      transition: background-color 0.3s, border-color 0.3s, transform 0.2s;
+    }
+
+    .ing-card:active {
+      transform: scale(0.98);
+    }
+
+    .ing-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+    }
+
+    .ing-emoji {
+      font-size: 1.6rem;
+    }
+
+    .ing-details {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .ing-name {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .ing-sub {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+    }
+
+    .ing-expiry {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 20px;
+    }
+
+    .expiry-alert {
+      animation: blink 1.2s infinite alternate;
+    }
+
+    @keyframes blink {
+      0% { opacity: 0.5; }
+      100% { opacity: 1; }
+    }
+
+    .qty-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: 10px;
+    }
+
+    .qty-btn {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 1px solid var(--divider);
+      background-color: var(--card-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: bold;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .qty-btn:hover {
+      background-color: var(--divider);
+    }
+
+    .qty-val {
+      font-size: 0.85rem;
+      font-weight: 700;
+      min-width: 32px;
+      text-align: center;
+      color: var(--text-primary);
+    }
+
+    /* Floating action button */
+    .fab {
+      position: absolute;
+      bottom: 80px;
+      right: 16px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background-color: var(--primary);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+      z-index: 99;
+      transition: transform 0.2s;
+    }
+
+    .fab:active {
+      transform: scale(0.9);
+    }
+
+    /* Add Form Modal View */
+    .modal-view {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: var(--background);
+      z-index: 200;
+      display: none;
+      flex-direction: column;
+      padding-top: 30px;
+      transition: background-color 0.3s;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .form-input {
+      width: 100%;
+      background-color: var(--card-bg);
+      border: 1px solid var(--divider);
+      border-radius: 12px;
+      padding: 12px 14px;
+      outline: none;
+      font-size: 0.9rem;
+      color: var(--text-primary);
+      transition: all 0.2s;
+    }
+
+    .form-input:focus {
+      border-color: var(--primary);
+    }
+
+    .autocomplete-container {
+      position: relative;
+    }
+
+    .autocomplete-list {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      background-color: white;
+      border: 1px solid var(--divider);
+      border-radius: 12px;
+      max-height: 150px;
+      overflow-y: auto;
+      z-index: 210;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+      display: none;
+    }
+
+    .autocomplete-item {
+      padding: 10px 14px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      border-bottom: 1px solid var(--divider);
+      color: #333;
+    }
+
+    .autocomplete-item:hover {
+      background-color: var(--primary-container);
+      color: var(--on-primary-container);
+    }
+
+    /* History and chips row in add screen */
+    .suggestion-row {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-top: 6px;
+    }
+
+    .suggestion-row::-webkit-scrollbar {
+      display: none;
+    }
+
+    .suggest-chip {
+      background-color: var(--card-bg);
+      border: 1px solid var(--divider);
+      padding: 5px 10px;
+      border-radius: 15px;
+      font-size: 0.7rem;
+      white-space: nowrap;
+      cursor: pointer;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    /* Recipe (AI) Tab components */
+    .ai-analysis-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      text-align: center;
+      padding: 30px;
+    }
+
+    .ai-spinner {
+      width: 60px;
+      height: 60px;
+      border: 5px solid var(--primary-container);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s infinite linear;
+      margin-bottom: 20px;
+    }
+
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+
+    .ai-step-text {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .ai-sub-text {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+
+    .recipe-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .recipe-card {
+      background-color: var(--card-bg);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+      border: 1px solid var(--divider);
+    }
+
+    .recipe-header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      color: white;
+      padding: 12px 16px;
+    }
+
+    .recipe-day {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      font-weight: 800;
+      opacity: 0.8;
+    }
+
+    .recipe-title {
+      font-size: 1rem;
+      font-weight: 800;
+      margin-top: 2px;
+    }
+
+    .recipe-body {
+      padding: 14px 16px;
+    }
+
+    .recipe-desc {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+
+    .recipe-meta {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .meta-badge {
+      background-color: var(--background);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      border: 1px solid var(--divider);
+    }
+
+    .ing-group {
+      margin-top: 10px;
+    }
+
+    .ing-group-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    .ing-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      font-size: 0.75rem;
+      border-bottom: 1px solid var(--divider);
+      color: var(--text-secondary);
+    }
+
+    .ing-item.missing {
+      color: var(--secondary);
+    }
+
+    .add-shopping-btn {
+      background-color: var(--secondary-container);
+      color: var(--secondary);
+      border: none;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Shopping List Screen */
+    .shop-section {
+      margin-bottom: 18px;
+    }
+
+    .shop-sec-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .shop-card {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border: 1px solid var(--divider);
+      margin-bottom: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    }
+
+    .shop-check {
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      border: 2px solid var(--divider);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .shop-check.checked {
+      background-color: var(--primary);
+      border-color: var(--primary);
+      color: white;
+    }
+
+    .shop-name {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      flex: 1;
+      margin-left: 12px;
+    }
+
+    .shop-name.checked {
+      text-decoration: line-through;
+      color: var(--text-tertiary);
+    }
+
+    /* Scan receipt screen */
+    .scan-btn-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .scan-opt-btn {
+      background-color: var(--card-bg);
+      border: 1px solid var(--divider);
+      padding: 16px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      cursor: pointer;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+      transition: all 0.2s;
+    }
+
+    .scan-opt-btn:active {
+      transform: scale(0.98);
+    }
+
+    .scan-opt-btn i {
+      font-size: 1.5rem;
+      color: var(--primary);
+    }
+
+    .ocr-preview-container {
+      background-color: var(--card-bg);
+      border-radius: 16px;
+      border: 1px solid var(--divider);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+    }
+
+    .ocr-header {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .ocr-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--divider);
+    }
+
+    .ocr-row input {
+      background: transparent;
+      border: none;
+      font-size: 0.8rem;
+      color: var(--text-primary);
+      font-weight: 600;
+      outline: none;
+    }
+
+    .ocr-row .ocr-name {
+      flex: 2;
+    }
+
+    .ocr-row .ocr-qty {
+      width: 40px;
+      text-align: right;
+    }
+
+    .ocr-row .ocr-unit {
+      width: 30px;
+    }
+
+    .ocr-row .ocr-days {
+      width: 45px;
+      text-align: right;
+      color: var(--secondary);
+    }
+
+    .ocr-row .ocr-del {
+      color: var(--error);
+      cursor: pointer;
+      padding: 2px;
+    }
+
+    /* Settings and Analytics Tab components */
+    .menu-item {
+      background-color: var(--card-bg);
+      padding: 14px 16px;
+      border-radius: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      border: 1px solid var(--divider);
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s, border-color 0.3s;
+    }
+
+    .menu-label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .menu-label i {
+      color: var(--primary);
+      font-size: 1.1rem;
+    }
+
+    /* Switch styling */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 22px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .3s;
+      border-radius: 22px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--primary);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(18px);
+    }
+
+    /* Analytics view overlay screen */
+    .analytics-view {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: var(--background);
+      z-index: 250;
+      display: none;
+      flex-direction: column;
+      padding-top: 30px;
+      transition: background-color 0.3s;
+    }
+
+    .chart-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 20px 0;
+      position: relative;
+    }
+
+    .chart-svg {
+      width: 160px;
+      height: 160px;
+      transform: rotate(-90deg);
+    }
+
+    .chart-center-text {
+      position: absolute;
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      text-align: center;
+    }
+
+    .chart-center-val {
+      font-size: 1.4rem;
+      display: block;
+      color: var(--primary);
+    }
+
+    .chart-legend {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: var(--color);
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .metric-card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--divider);
+      border-radius: 14px;
+      padding: 12px;
+      text-align: center;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+    }
+
+    .metric-val {
+      font-size: 1.1rem;
+      font-weight: 800;
+      margin-top: 4px;
+    }
+
+    /* Notification message bubble */
+    .toast-msg {
+      position: absolute;
+      top: 45px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      background-color: rgba(27, 107, 58, 0.95);
+      color: white;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 8px 16px;
+      border-radius: 20px;
+      z-index: 1000;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      opacity: 0;
+      transition: all 0.3s ease;
+      pointer-events: none;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .toast-msg.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Quick Action Header */
+    .quick-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="wrapper">
+  <!-- Left Side Info Panel -->
+  <div class="info-panel">
+    <div class="badge-premium">Premium Ver. 5.0</div>
+    <h1>FreshBox Web Demo</h1>
+    <p>
+      PC上で動作とUIデザインを確認できるインタラクティブデモです。Flutterアプリに搭載されている全ての機能と、 Phase 5 にて実装した機能を含みます。
+    </p>
+    <ul class="feature-list">
+      <li><i class="fa-solid fa-circle-check"></i> <strong>オートコンプリート検索:</strong> 350種類の有名メーカー商品に対応</li>
+      <li><i class="fa-solid fa-circle-check"></i> <strong>よく使う食材（購入履歴）:</strong> タップで瞬時にフォーム自動入力</li>
+      <li><i class="fa-solid fa-circle-check"></i> <strong>数量変更・連動:</strong> －で数量が0になると自動で買い物リストへ</li>
+      <li><i class="fa-solid fa-circle-check"></i> <strong>AI風献立プランナー:</strong> 冷蔵庫の中身を分析して3日分のディナー提案</li>
+      <li><i class="fa-solid fa-circle-check"></i> <strong>ロス削減円グラフ:</strong> 自社描画の美しい分析統計レポート</li>
+      <li><i class="fa-solid fa-circle-check"></i> <strong>自動ダークモード:</strong> 夜間のキッチンでも見やすいシックな色合い</li>
+    </ul>
+    <p style="font-size: 0.9rem; color: #A5D6A7;">
+      ※右側のスマホ画面を直接クリック・タップして操作できます。設定画面の「ダークモード」トグルを切り替えるとデザインテーマがダークグリーンのナイトモードに変化します。
+    </p>
+  </div>
+
+  <!-- Right Side Interactive Mobile Mockup -->
+  <div class="phone-mockup">
+    <!-- Notch -->
+    <div class="phone-notch"></div>
+    
+    <!-- Active App Body Container -->
+    <div id="appContainer" class="app-container">
+      
+      <!-- Toast Alert Bubble -->
+      <div id="toast" class="toast-msg"></div>
+
+      <!-- App Header -->
+      <header class="app-header">
+        <h2 id="headerTitle">冷蔵庫の在庫</h2>
+        <div class="header-icons" id="headerIcons">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </div>
+      </header>
+
+      <!-- Refrigerator (Fridge) Tab -->
+      <div id="tabFridge" class="tab-content">
+        <!-- Search bar -->
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="searchInput" placeholder="在庫を検索..." oninput="renderIngredients()">
+        </div>
+
+        <!-- Category scrolls -->
+        <div class="cat-scroll">
+          <div class="cat-chip active" onclick="filterCategory('all', this)">すべて</div>
+          <div class="cat-chip" onclick="filterCategory('meat', this)">🥩 肉類</div>
+          <div class="cat-chip" onclick="filterCategory('vegetable', this)">🥬 野菜</div>
+          <div class="cat-chip" onclick="filterCategory('fish', this)">🐟 魚介</div>
+          <div class="cat-chip" onclick="filterCategory('dairy', this)">🥛 乳製品</div>
+          <div class="cat-chip" onclick="filterCategory('seasoning', this)">🧂 調味料</div>
+          <div class="cat-chip" onclick="filterCategory('frozen', this)">❄️ 冷凍</div>
+          <div class="cat-chip" onclick="filterCategory('other', this)">📦 その他</div>
+        </div>
+
+        <!-- Refrigerator list -->
+        <div id="fridgeList" class="ingredients-list">
+          <!-- Rendered dynamically -->
+        </div>
+
+        <!-- Floating action button to Add Screen -->
+        <div class="fab" onclick="openAddModal()"><i class="fa-solid fa-plus"></i></div>
+      </div>
+
+      <!-- AI Recipe Planner Tab -->
+      <div id="tabRecipe" class="tab-content" style="display: none;">
+        <!-- Dynamic loading states / analyzed states -->
+        <div id="aiLoading" class="ai-analysis-container">
+          <div class="ai-spinner"></div>
+          <div id="aiStepText" class="ai-step-text">冷蔵庫の食材を抽出中...</div>
+          <div class="ai-sub-text">AIが期限の近い食材を分析しています</div>
+        </div>
+
+        <div id="recipePlannerView" style="display: none;">
+          <div class="quick-title">💡 期限間近の食材を使った3日間のAI献立</div>
+          <div class="recipe-list" id="recipeListContainer">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Receipt scan Tab -->
+      <div id="tabScan" class="tab-content" style="display: none;">
+        <div class="scan-btn-container" id="scanInitBtns">
+          <div class="scan-opt-btn" onclick="startMockScan('camera')">
+            <i class="fa-solid fa-camera"></i>
+            <div>
+              <div>レシートを撮影する</div>
+              <div style="font-size: 0.7rem; font-weight: normal; color: var(--text-secondary); margin-top: 2px;">カメラでレシートを読み込みます</div>
+            </div>
+          </div>
+          <div class="scan-opt-btn" onclick="startMockScan('gallery')">
+            <i class="fa-solid fa-image"></i>
+            <div>
+              <div>アルバムから選択</div>
+              <div style="font-size: 0.7rem; font-weight: normal; color: var(--text-secondary); margin-top: 2px;">過去に撮影した画像から解析します</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scanning Loader -->
+        <div id="scanLoader" class="ai-analysis-container" style="display: none; padding-top: 60px;">
+          <div class="ai-spinner"></div>
+          <div class="ai-step-text">画像をOCR解析中...</div>
+          <div class="ai-sub-text">品名・数量・価格を特定しています</div>
+        </div>
+
+        <!-- OCR Scan Result List -->
+        <div id="ocrResultView" style="display: none;">
+          <div class="quick-title" style="display: flex; justify-content: space-between;">
+            <span>🔍 解析結果確認・修正</span>
+            <span style="color: var(--primary);">スーパーサンヨー</span>
+          </div>
+          <div class="ocr-preview-container" style="margin-bottom: 20px;">
+            <div class="ocr-header">
+              <span style="flex: 2;">商品名</span>
+              <span style="width: 40px; text-align: right;">数量</span>
+              <span style="width: 30px;">単位</span>
+              <span style="width: 45px; text-align: right;">消費目安</span>
+              <span style="width: 20px;"></span>
+            </div>
+            <div id="ocrRowsContainer">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+          <button onclick="commitOcrResults()" style="width: 100%; border: none; background-color: var(--primary); color: white; padding: 12px; border-radius: 12px; font-weight: 700; font-size: 0.9rem; cursor: pointer;">
+            確認した食材を冷蔵庫に追加
+          </button>
+        </div>
+      </div>
+
+      <!-- Shopping List Tab -->
+      <div id="tabShopping" class="tab-content" style="display: none;">
+        <!-- Add shopping text input -->
+        <div class="search-box">
+          <i class="fa-solid fa-cart-plus" style="color: var(--primary)"></i>
+          <input type="text" id="shoppingInput" placeholder="買うものを追加... (例: 牛乳)" onkeypress="handleShoppingKey(event)">
+          <i class="fa-solid fa-plus-circle" style="font-size: 1.3rem; color: var(--primary); cursor: pointer;" onclick="addShoppingFromInput()"></i>
+        </div>
+
+        <div id="shoppingListContainer">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- Settings / Mode / Analytics Tab -->
+      <div id="tabSettings" class="tab-content" style="display: none;">
+        <!-- iCloud Sync Setting -->
+        <div class="menu-item">
+          <div class="menu-label">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+            <div>
+              <div>iCloud 家族間同期</div>
+              <div style="font-size: 0.7rem; font-weight: normal; color: var(--text-secondary); margin-top: 2px;">最終同期: 1分前</div>
+            </div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" checked onchange="triggerToast('iCloud同期設定を変更しました')">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <!-- Dark Mode Toggle -->
+        <div class="menu-item">
+          <div class="menu-label">
+            <i class="fa-solid fa-moon"></i>
+            <div>
+              <div>ダークモード設定</div>
+              <div style="font-size: 0.7rem; font-weight: normal; color: var(--text-secondary); margin-top: 2px;">夜間のキッチンでも使いやすく</div>
+            </div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode(this)">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <!-- Refrigerator Report Navigation -->
+        <div class="menu-item" onclick="openAnalytics()">
+          <div class="menu-label">
+            <i class="fa-solid fa-chart-pie"></i>
+            <div>
+              <div>冷蔵庫分析レポート</div>
+              <div style="font-size: 0.7rem; font-weight: normal; color: var(--text-secondary); margin-top: 2px;">栄養構成バランス・フードロス分析</div>
+            </div>
+          </div>
+          <i class="fa-solid fa-chevron-right" style="color: var(--text-tertiary)"></i>
+        </div>
+
+        <!-- Push Notifications Test -->
+        <div class="menu-item" onclick="triggerToast('🔔【消費期限アラート】卵が残り2日です！早く使いましょう')">
+          <div class="menu-label">
+            <i class="fa-solid fa-bell"></i>
+            <div>
+              <div>プッシュ通知テスト</div>
+              <div style="font-size: 0.7rem; font-weight: normal; color: var(--text-secondary); margin-top: 2px;">消費期限2日前の朝8:30の警告通知テスト</div>
+            </div>
+          </div>
+          <i class="fa-solid fa-play" style="color: var(--text-tertiary)"></i>
+        </div>
+      </div>
+
+      <!-- Add Screen Overlay Modal -->
+      <div id="addModal" class="modal-view">
+        <header class="app-header" style="background: var(--card-bg); border-bottom: 1px solid var(--divider); color: var(--text-primary); position: relative;">
+          <i class="fa-solid fa-xmark" style="cursor: pointer; font-size: 1.25rem;" onclick="closeAddModal()"></i>
+          <h2 style="color: var(--text-primary); font-size: 1rem;">食材を追加</h2>
+          <button onclick="saveNewIngredient()" style="background: transparent; border: none; color: var(--primary); font-weight: 700; font-size: 0.9rem; cursor: pointer;">保存</button>
+        </header>
+
+        <div style="padding: 16px; overflow-y: auto; flex: 1;">
+          <!-- Quick Suggestions list (よく使う食材) -->
+          <div class="quick-title">🕒 よく使う食材（履歴から1タップ補完）</div>
+          <div class="suggestion-row">
+            <div class="suggest-chip" onclick="applyQuickHistory('卵', 'dairy', 10, '個', 10, 'refrigerator', 248)">🥛 卵</div>
+            <div class="suggest-chip" onclick="applyQuickHistory('牛乳', 'dairy', 1, 'L', 7, 'refrigerator', 238)">🥛 牛乳</div>
+            <div class="suggest-chip" onclick="applyQuickHistory('ヨーグルト', 'dairy', 1, '個', 10, 'refrigerator', 198)">🥛 ヨーグルト</div>
+            <div class="suggest-chip" onclick="applyQuickHistory('納豆', 'other', 3, 'パック', 7, 'refrigerator', 98)">📦 納豆</div>
+            <div class="suggest-chip" onclick="applyQuickHistory('豆腐', 'other', 1, '丁', 5, 'refrigerator', 78)">📦 豆腐</div>
+            <div class="suggest-chip" onclick="applyQuickHistory('豚バラ肉', 'meat', 200, 'g', 3, 'refrigerator', 398)">🥩 豚バラ肉</div>
+          </div>
+
+          <!-- Form inputs -->
+          <div class="form-group" style="margin-top: 15px;">
+            <label class="form-label">食材名 *</label>
+            <div class="autocomplete-container">
+              <input type="text" id="formName" class="form-input" placeholder="例: シャウエッセン" oninput="handleAutocompleteInput(this)" autocomplete="off">
+              <!-- Autocomplete dropdown list -->
+              <div id="autocompleteList" class="autocomplete-list"></div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">カテゴリ *</label>
+            <select id="formCategory" class="form-input">
+              <option value="meat">🥩 肉類</option>
+              <option value="vegetable">🥬 野菜</option>
+              <option value="fish">🐟 魚介</option>
+              <option value="dairy">🥛 乳製品</option>
+              <option value="seasoning">🧂 調味料</option>
+              <option value="frozen">❄️ 冷凍</option>
+              <option value="other">📦 その他</option>
+            </select>
+          </div>
+
+          <div style="display: flex; gap: 10px;">
+            <div class="form-group" style="flex: 2;">
+              <label class="form-label">数量 *</label>
+              <input type="number" step="any" id="formQty" class="form-input" placeholder="300">
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label">単位 *</label>
+              <select id="formUnit" class="form-input">
+                <option value="g">g</option>
+                <option value="kg">kg</option>
+                <option value="ml">ml</option>
+                <option value="L">L</option>
+                <option value="個">個</option>
+                <option value="パック">パック</option>
+                <option value="本">本</option>
+                <option value="束">束</option>
+                <option value="枚">枚</option>
+                <option value="切れ">切れ</option>
+                <option value="丁">丁</option>
+                <option value="缶">缶</option>
+                <option value="袋">袋</option>
+                <option value="食">食</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">価格（任意）</label>
+            <input type="number" id="formPrice" class="form-input" placeholder="標準価格">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">消費目安 * (今日からの日数)</label>
+            <input type="number" id="formExpiryDays" class="form-input" placeholder="7">
+            <div class="suggestion-row" style="margin-top: 8px;">
+              <div class="suggest-chip" onclick="addFormDays(3)">＋3日</div>
+              <div class="suggest-chip" onclick="addFormDays(7)">＋1週間</div>
+              <div class="suggest-chip" onclick="addFormDays(14)">＋2週間</div>
+              <div class="suggest-chip" onclick="addFormDays(30)">＋1ヶ月</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">保存場所 *</label>
+            <select id="formStorage" class="form-input">
+              <option value="refrigerator">❄️ 冷蔵庫</option>
+              <option value="freezer">🧊 冷凍庫</option>
+              <option value="pantry">📦 パントリー/常温</option>
+              <option value="snackShelf">🍪 お菓子棚</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Analytics Report Overlay Screen -->
+      <div id="analyticsModal" class="analytics-view">
+        <header class="app-header" style="background: var(--card-bg); border-bottom: 1px solid var(--divider); color: var(--text-primary); position: relative;">
+          <i class="fa-solid fa-chevron-left" style="cursor: pointer; font-size: 1.25rem;" onclick="closeAnalytics()"></i>
+          <h2 style="color: var(--text-primary); font-size: 1rem;">冷蔵庫分析レポート</h2>
+          <span style="width: 20px;"></span>
+        </header>
+
+        <div style="padding: 16px; overflow-y: auto; flex: 1;">
+          <div class="quick-title">📊 栄養バランス（円グラフ）</div>
+          <!-- Canvas Circle Graph -->
+          <div class="chart-container">
+            <svg class="chart-svg" viewBox="0 0 36 36">
+              <!-- Background Gray Circle -->
+              <circle cx="18" cy="18" r="15.915" fill="none" stroke="var(--divider)" stroke-width="3"></circle>
+              <!-- Colored Segments (will be dynamic) -->
+              <circle cx="18" cy="18" r="15.915" fill="none" stroke="#FF5722" stroke-dasharray="35 65" stroke-dashoffset="0" stroke-width="3.2"></circle>
+              <circle cx="18" cy="18" r="15.915" fill="none" stroke="#4CAF50" stroke-dasharray="25 75" stroke-dashoffset="-35" stroke-width="3.2"></circle>
+              <circle cx="18" cy="18" r="15.915" fill="none" stroke="#00BCD4" stroke-dasharray="20 80" stroke-dashoffset="-60" stroke-width="3.2"></circle>
+              <circle cx="18" cy="18" r="15.915" fill="none" stroke="#FFC107" stroke-dasharray="20 80" stroke-dashoffset="-80" stroke-width="3.2"></circle>
+            </svg>
+            <div class="chart-center-text">
+              在庫数
+              <span id="analyticsTotalCount" class="chart-center-val">6品</span>
+            </div>
+          </div>
+
+          <div class="chart-legend">
+            <div class="legend-item"><div class="legend-dot" style="background: #FF5722"></div>🥩 肉類 (35%)</div>
+            <div class="legend-item"><div class="legend-dot" style="background: #4CAF50"></div>🥬 野菜 (25%)</div>
+            <div class="legend-item"><div class="legend-dot" style="background: #00BCD4"></div>🥛 乳製品 (20%)</div>
+            <div class="legend-item"><div class="legend-dot" style="background: #FFC107"></div>📦 その他 (20%)</div>
+          </div>
+
+          <!-- AI Nutrition Advice -->
+          <div style="background-color: var(--primary-container); color: var(--on-primary-container); border-radius: 14px; padding: 14px; font-size: 0.75rem; line-height: 1.5; margin-bottom: 20px;">
+            <div style="font-weight: bold; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-brain"></i> AI管理栄養士のアドバイス
+            </div>
+            現在、冷蔵庫は肉類がやや多めで、緑黄色野菜が不足しています。次のメニューには冷凍のブロッコリーや白菜などを積極的に使い、ビタミンバランスを補うことをお勧めします。
+          </div>
+
+          <div class="quick-title">💰 今月のロス削減と家計統計</div>
+          <div class="metric-grid">
+            <div class="metric-card">
+              <div style="font-size: 0.65rem; color: var(--text-secondary)">フードロス削減率</div>
+              <div class="metric-val" style="color: var(--primary);">94.2%</div>
+            </div>
+            <div class="metric-card">
+              <div style="font-size: 0.65rem; color: var(--text-secondary)">今月の推定節約額</div>
+              <div class="metric-val" style="color: var(--primary);">¥4,280</div>
+            </div>
+            <div class="metric-card" style="grid-column: span 2;">
+              <div style="font-size: 0.65rem; color: var(--text-secondary)">廃棄による損失金額</div>
+              <div class="metric-val" style="color: var(--error);">¥320</div>
+              <div style="font-size: 0.6rem; color: var(--text-tertiary); margin-top: 4px;">賞味期限切れによる損失</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Navigation bar -->
+      <nav class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('fridge', this)">
+          <i class="fa-solid fa-box-archive"></i>
+          冷蔵庫
+        </div>
+        <div class="nav-item" onclick="switchTab('recipe', this)">
+          <i class="fa-solid fa-utensils"></i>
+          AIレシピ
+        </div>
+        <div class="nav-item" onclick="switchTab('scan', this)">
+          <i class="fa-solid fa-camera"></i>
+          スキャン
+        </div>
+        <div class="nav-item" onclick="switchTab('shopping', this)">
+          <i class="fa-solid fa-cart-shopping"></i>
+          買い物
+          <span class="nav-badge" id="shopBadge" style="display: none;">0</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('settings', this)">
+          <i class="fa-solid fa-gear"></i>
+          設定
+        </div>
+      </nav>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  // Initial Mock Data representing the state of the app
+  let ingredients = [
+    { id: '1', name: '牛タン', category: 'meat', quantity: 200, unit: 'g', expiryDays: 1, storageLocation: 'refrigerator', price: 580, emoji: '🥩' },
+    { id: '2', name: '白菜', category: 'vegetable', quantity: 0.25, unit: '個', expiryDays: 2, storageLocation: 'refrigerator', price: 150, emoji: '🥬' },
+    { id: '3', name: 'レモン', category: 'vegetable', quantity: 3, unit: '個', expiryDays: 14, storageLocation: 'refrigerator', price: 298, emoji: '🍋' },
+    { id: '4', name: '豚肩ロース', category: 'meat', quantity: 300, unit: 'g', expiryDays: 5, storageLocation: 'refrigerator', price: 450, emoji: '🥩' },
+    { id: '5', name: '卵', category: 'dairy', quantity: 6, unit: '個', expiryDays: 10, storageLocation: 'refrigerator', price: 198, emoji: '🥛' },
+    { id: '6', name: '絹豆腐', category: 'other', quantity: 1, unit: '丁', expiryDays: 4, storageLocation: 'refrigerator', price: 78, emoji: '📦' }
+  ];
+
+  let shoppingList = [
+    { id: 's1', name: '長ネギ', category: 'vegetable', quantity: 1, unit: '本', expiryDays: 10, storageLocation: 'refrigerator', price: 128, emoji: '🥬', checked: false },
+    { id: 's2', name: 'ポン酢', category: 'seasoning', quantity: 1, unit: '本', expiryDays: 120, storageLocation: 'refrigerator', price: 250, emoji: '🧂', checked: false }
+  ];
+
+  // List of some Master templates representing autocomplete database (including brand names)
+  const masterTemplates = [
+    { name: 'シャウエッセン', category: 'meat', quantity: 1, unit: '袋', expiryDays: 10, storageLocation: 'refrigerator', price: 398, emoji: '🥩' },
+    { name: '明治おいしい牛乳', category: 'dairy', quantity: 1, unit: 'L', expiryDays: 7, storageLocation: 'refrigerator', price: 248, emoji: '🥛' },
+    { name: 'バーモントカレー', category: 'seasoning', quantity: 1, unit: '箱', expiryDays: 180, storageLocation: 'pantry', price: 228, emoji: '🧂' },
+    { name: 'コカ・コーラ', category: 'other', quantity: 1, unit: '本', expiryDays: 180, storageLocation: 'pantry', price: 158, emoji: '🥤' },
+    { name: '日清 カップヌードル', category: 'other', quantity: 1, unit: '個', expiryDays: 180, storageLocation: 'pantry', price: 198, emoji: '🍜' },
+    { name: '味の素 ギョーザ', category: 'frozen', quantity: 1, unit: '袋', expiryDays: 60, storageLocation: 'freezer', price: 218, emoji: '❄️' },
+    { name: 'キャベツ', category: 'vegetable', quantity: 1, unit: '玉', expiryDays: 10, storageLocation: 'refrigerator', price: 198, emoji: '🥬' },
+    { name: 'たまねぎ', category: 'vegetable', quantity: 3, unit: '個', expiryDays: 30, storageLocation: 'pantry', price: 198, emoji: '🥬' },
+    { name: 'にんじん', category: 'vegetable', quantity: 2, unit: '本', expiryDays: 14, storageLocation: 'pantry', price: 158, emoji: '🥬' },
+    { name: 'じゃがいも', category: 'vegetable', quantity: 4, unit: '個', expiryDays: 30, storageLocation: 'pantry', price: 198, emoji: '🥬' }
+  ];
+
+  const categoryEmojis = {
+    meat: '🥩', vegetable: '🥬', fish: '🐟', dairy: '🥛', seasoning: '🧂', frozen: '❄️', other: '📦'
+  };
+
+  const categoryLabels = {
+    meat: '肉類', vegetable: '野菜', fish: '魚介', dairy: '乳製品', seasoning: '調味料', frozen: '冷凍', other: 'その他'
+  };
+
+  const storageLabels = {
+    refrigerator: '冷蔵庫', freezer: '冷凍庫', pantry: 'パントリー/常温', snackShelf: 'お菓子棚'
+  };
+
+  let currentCategoryFilter = 'all';
+
+  // Sound / vibration mockup feedback
+  function playClickHaptic() {
+    // Attempt standard vibration if on a device that supports it
+    if (navigator.vibrate) {
+      navigator.vibrate(10);
+    }
+  }
+
+  // Toast message controller
+  function triggerToast(message) {
+    const toast = document.getElementById('toast');
+    toast.innerHTML = `<i class="fa-solid fa-bell"></i> ${message}`;
+    toast.classList.add('show');
+    playClickHaptic();
+    setTimeout(() => {
+      toast.classList.remove('show');
+    }, 3000);
+  }
+
+  // Switch tabs
+  function switchTab(tabId, el) {
+    playClickHaptic();
+    
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+    
+    // Show selected tab
+    document.getElementById(`tab${tabId.charAt(0).toUpperCase() + tabId.slice(1)}`).style.display = 'flex';
+    
+    // Set active tab in navbar
+    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+    el.classList.add('active');
+    
+    // Header title and icons adjustments
+    const headerTitle = document.getElementById('headerTitle');
+    const headerIcons = document.getElementById('headerIcons');
+    
+    if (tabId === 'fridge') {
+      headerTitle.textContent = '冷蔵庫の在庫';
+      headerIcons.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i>';
+      renderIngredients();
+    } else if (tabId === 'recipe') {
+      headerTitle.textContent = 'AI献立プランナー';
+      headerIcons.innerHTML = '<i class="fa-solid fa-rotate-right" onclick="triggerAiPlanner()"></i>';
+      triggerAiPlanner();
+    } else if (tabId === 'scan') {
+      headerTitle.textContent = 'レシート一括登録';
+      headerIcons.innerHTML = '<i class="fa-solid fa-question-circle"></i>';
+      // Reset scan view
+      document.getElementById('scanInitBtns').style.display = 'flex';
+      document.getElementById('scanLoader').style.display = 'none';
+      document.getElementById('ocrResultView').style.display = 'none';
+    } else if (tabId === 'shopping') {
+      headerTitle.textContent = '買い物リスト';
+      headerIcons.innerHTML = '<i class="fa-solid fa-trash-can" onclick="clearAllShopping()"></i>';
+      renderShoppingList();
+    } else if (tabId === 'settings') {
+      headerTitle.textContent = 'マイページ・設定';
+      headerIcons.innerHTML = '<i class="fa-solid fa-gear"></i>';
+    }
+  }
+
+  // Filter category in Fridge tab
+  function filterCategory(cat, el) {
+    playClickHaptic();
+    currentCategoryFilter = cat;
+    document.querySelectorAll('.cat-chip').forEach(chip => chip.classList.remove('active'));
+    el.classList.add('active');
+    renderIngredients();
+  }
+
+  // Get Expiry label color
+  function getExpiryColor(days) {
+    if (days < 0) return 'var(--expiry-expired)';
+    if (days <= 2) return 'var(--expiry-urgent)';
+    if (days <= 4) return 'var(--expiry-warning)';
+    return 'var(--expiry-fresh)';
+  }
+
+  // Refrigerator elements rendering
+  function renderIngredients() {
+    const list = document.getElementById('fridgeList');
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    list.innerHTML = '';
+    
+    let filtered = ingredients;
+    if (currentCategoryFilter !== 'all') {
+      filtered = filtered.filter(i => i.category === currentCategoryFilter);
+    }
+    if (search.trim() !== '') {
+      filtered = filtered.filter(i => i.name.toLowerCase().includes(search));
+    }
+    
+    if (filtered.length === 0) {
+      list.innerHTML = `
+        <div style="text-align: center; color: var(--text-tertiary); padding: 40px 20px; font-size: 0.85rem;">
+          <i class="fa-solid fa-basket-shopping" style="font-size: 2.5rem; margin-bottom: 12px; opacity: 0.5;"></i>
+          <div>冷蔵庫に食材がありません。</div>
+        </div>
+      `;
+      return;
+    }
+    
+    filtered.forEach(ing => {
+      const cardColor = getExpiryColor(ing.expiryDays);
+      let expiryLabel = `残り ${ing.expiryDays}日`;
+      let alertClass = '';
+      if (ing.expiryDays < 0) {
+        expiryLabel = '期限切れ';
+      } else if (ing.expiryDays === 0) {
+        expiryLabel = '今日まで！';
+        alertClass = 'expiry-alert';
+      } else if (ing.expiryDays <= 2) {
+        expiryLabel = `残り${ing.expiryDays}日 (今日使って！)`;
+        alertClass = 'expiry-alert';
+      }
+      
+      const card = document.createElement('div');
+      card.className = 'ing-card';
+      card.style.setProperty('--border-color', cardColor);
+      card.innerHTML = `
+        <div class="ing-info">
+          <span class="ing-emoji">${ing.emoji || categoryEmojis[ing.category]}</span>
+          <div class="ing-details">
+            <span class="ing-name">${ing.name}</span>
+            <span class="ing-sub">${storageLabels[ing.storageLocation]} ・ ¥${ing.price || 250}</span>
+            <div class="ing-expiry ${alertClass}" style="color: ${cardColor}; background-color: ${cardColor}15; width: fit-content; margin-top: 4px;">
+              <i class="fa-solid ${ing.expiryDays <= 2 ? 'fa-fire' : 'fa-check'}"></i>
+              ${expiryLabel}
+            </div>
+          </div>
+        </div>
+        <div class="qty-controls">
+          <div class="qty-btn" onclick="updateQty('${ing.id}', -1)">-</div>
+          <span class="qty-val">${ing.quantity} ${ing.unit}</span>
+          <div class="qty-btn" onclick="updateQty('${ing.id}', 1)">+</div>
+        </div>
+      `;
+      list.appendChild(card);
+    });
+  }
+
+  // Update quantity on ingredients card
+  function updateQty(id, offset) {
+    playClickHaptic();
+    const idx = ingredients.findIndex(i => i.id === id);
+    if (idx === -1) return;
+    
+    let newQty = ingredients[idx].quantity + offset;
+    // Format to 2 decimal places if fractional, else keep integer
+    newQty = Math.round(newQty * 100) / 100;
+    
+    if (newQty <= 0) {
+      // Shufu-Friendly feature: Auto-delete from Fridge and add to Shopping List
+      const deletedItem = ingredients.splice(idx, 1)[0];
+      renderIngredients();
+      
+      // Add to Shopping List
+      const exists = shoppingList.find(s => s.name.toLowerCase() === deletedItem.name.toLowerCase());
+      if (!exists) {
+        shoppingList.push({
+          id: 's_' + Date.now(),
+          name: deletedItem.name,
+          category: deletedItem.category,
+          quantity: deletedItem.quantity,
+          unit: deletedItem.unit,
+          expiryDays: deletedItem.expiryDays,
+          storageLocation: deletedItem.storageLocation,
+          price: deletedItem.price,
+          emoji: deletedItem.emoji,
+          checked: false
+        });
+        updateShoppingBadge();
+      }
+      
+      triggerToast(`【${deletedItem.name}】を使い切りました。買い物リストに自動追加！`);
+    } else {
+      ingredients[idx].quantity = newQty;
+      renderIngredients();
+    }
+  }
+
+  // Update shopping nav badge count
+  function updateShoppingBadge() {
+    const badge = document.getElementById('shopBadge');
+    const unchecked = shoppingList.filter(s => !s.checked).length;
+    if (unchecked > 0) {
+      badge.textContent = unchecked;
+      badge.style.display = 'block';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  // Shopping List Screen rendering
+  function renderShoppingList() {
+    const container = document.getElementById('shoppingListContainer');
+    container.innerHTML = '';
+    
+    updateShoppingBadge();
+    
+    if (shoppingList.length === 0) {
+      container.innerHTML = `
+        <div style="text-align: center; color: var(--text-tertiary); padding: 50px 20px; font-size: 0.85rem;">
+          <i class="fa-solid fa-clipboard-list" style="font-size: 2.5rem; margin-bottom: 12px; opacity: 0.5;"></i>
+          <div>買うものリストは空です。</div>
+        </div>
+      `;
+      return;
+    }
+    
+    // Group by category
+    const grouped = {};
+    shoppingList.forEach(item => {
+      if (!grouped[item.category]) {
+        grouped[item.category] = [];
+      }
+      grouped[item.category].push(item);
+    });
+    
+    Object.keys(grouped).forEach(cat => {
+      const section = document.createElement('div');
+      section.className = 'shop-section';
+      
+      const header = document.createElement('div');
+      header.className = 'shop-sec-title';
+      header.innerHTML = `<span>${categoryEmojis[cat]} ${categoryLabels[cat]}</span>`;
+      section.appendChild(header);
+      
+      grouped[cat].forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'shop-card';
+        card.innerHTML = `
+          <div style="display: flex; align-items: center; flex: 1;">
+            <div class="shop-check ${item.checked ? 'checked' : ''}" onclick="toggleShopItem('${item.id}')">
+              ${item.checked ? '<i class="fa-solid fa-check"></i>' : ''}
+            </div>
+            <span class="shop-name ${item.checked ? 'checked' : ''}">${item.name} (${item.quantity}${item.unit})</span>
+          </div>
+          <span style="font-size: 0.75rem; color: var(--text-tertiary); margin-right: 12px;">¥${item.price || 250}</span>
+          <i class="fa-solid fa-trash-can" style="color: var(--text-tertiary); cursor: pointer;" onclick="deleteShopItem('${item.id}')"></i>
+        `;
+        section.appendChild(card);
+      });
+      
+      container.appendChild(section);
+    });
+  }
+
+  // Toggle checkout status of shopping list item
+  function toggleShopItem(id) {
+    playClickHaptic();
+    const item = shoppingList.find(s => s.id === id);
+    if (!item) return;
+    
+    item.checked = !item.checked;
+    renderShoppingList();
+    
+    if (item.checked) {
+      // Purchased! Add back to Refrigerator with standard expiry offset
+      setTimeout(() => {
+        // Find inside shopping list and remove
+        const idx = shoppingList.findIndex(s => s.id === id);
+        if (idx !== -1) {
+          const purchased = shoppingList.splice(idx, 1)[0];
+          
+          // Add back to Refrigerator
+          ingredients.push({
+            id: 'i_' + Date.now(),
+            name: purchased.name,
+            category: purchased.category,
+            quantity: purchased.quantity,
+            unit: purchased.unit,
+            expiryDays: purchased.expiryDays || 7, // default
+            storageLocation: purchased.storageLocation || 'refrigerator',
+            price: purchased.price,
+            emoji: purchased.emoji || categoryEmojis[purchased.category]
+          });
+          
+          renderShoppingList();
+          triggerToast(`【${purchased.name}】を購入し、冷蔵庫に登録しました！`);
+        }
+      }, 600);
+    }
+  }
+
+  // Delete item from shopping list
+  function deleteShopItem(id) {
+    playClickHaptic();
+    const idx = shoppingList.findIndex(s => s.id === id);
+    if (idx !== -1) {
+      shoppingList.splice(idx, 1);
+      renderShoppingList();
+    }
+  }
+
+  // Add new shopping item via top input bar
+  function addShoppingFromInput() {
+    const input = document.getElementById('shoppingInput');
+    const name = input.value.trim();
+    if (name === '') return;
+    
+    // Look up template autocomplete
+    const matched = masterTemplates.find(t => t.name.toLowerCase() === name.toLowerCase()) || {
+      category: 'other', quantity: 1, unit: '個', expiryDays: 7, storageLocation: 'refrigerator', price: 200, emoji: '📦'
+    };
+    
+    shoppingList.push({
+      id: 's_' + Date.now(),
+      name: name,
+      category: matched.category,
+      quantity: matched.quantity,
+      unit: matched.unit,
+      expiryDays: matched.expiryDays,
+      storageLocation: matched.storageLocation,
+      price: matched.price,
+      emoji: matched.emoji || categoryEmojis[matched.category],
+      checked: false
+    });
+    
+    input.value = '';
+    renderShoppingList();
+    triggerToast(`【${name}】を買い物リストに追加しました`);
+  }
+
+  function handleShoppingKey(e) {
+    if (e.key === 'Enter') {
+      addShoppingFromInput();
+    }
+  }
+
+  function clearAllShopping() {
+    playClickHaptic();
+    if (shoppingList.length === 0) return;
+    if (confirm('買い物リストをすべてクリアしますか？')) {
+      shoppingList = [];
+      renderShoppingList();
+    }
+  }
+
+  // AI Recipe planner loader simulations
+  function triggerAiPlanner() {
+    const loader = document.getElementById('aiLoading');
+    const planner = document.getElementById('recipePlannerView');
+    const stepText = document.getElementById('aiStepText');
+    
+    loader.style.display = 'flex';
+    planner.style.display = 'none';
+    
+    // Step 1
+    stepText.textContent = '冷蔵庫の期限の早い食材を分析中...';
+    setTimeout(() => {
+      // Step 2
+      stepText.textContent = '栄養素バランスを計算中...';
+      setTimeout(() => {
+        // Step 3
+        stepText.textContent = '3日間のディナーメニューを考案中...';
+        setTimeout(() => {
+          loader.style.display = 'none';
+          planner.style.display = 'block';
+          renderRecipes();
+        }, 800);
+      }, 800);
+    }, 800);
+  }
+
+  // Render dynamic AI recipes suggestion card
+  function renderRecipes() {
+    const container = document.getElementById('recipeListContainer');
+    container.innerHTML = '';
+    
+    const menuDays = [
+      {
+        day: '1日目のディナー',
+        title: '豚肩ロースと白菜のレモン塩鍋',
+        desc: '期限が残り2日の白菜と残り5日の豚肩ロースをたっぷり消費。さっぱりとしたレモン塩スープは食欲をそそり、体も温まります。',
+        used: ['豚肩ロース (残り5日)', '白菜 (残り2日)', 'レモン (残り14日)'],
+        missing: ['長ネギ']
+      },
+      {
+        day: '2日目のディナー',
+        title: '贅沢牛タンしゃぶしゃぶ',
+        desc: '消費期限当日（残り1日）の牛タンを贅沢に味わう鍋。千切りした白菜を巻いてポン酢でいただく、極上の時短おかずです。',
+        used: ['牛タン (残り1日)', '白菜 (残り2日)'],
+        missing: ['ポン酢']
+      },
+      {
+        day: '3日目のディナー',
+        title: '豚肩ロースのさっぱりレモン塩焼き',
+        desc: '残った豚肩ロースをカリッと焼いて、レモンとニンニクを効かせた特製だれで。ご飯がすすむスタミナメニュー。',
+        used: ['豚肩ロース (残り5日)', 'レモン (残り14日)'],
+        missing: ['にんにく']
+      }
+    ];
+    
+    menuDays.forEach(r => {
+      const card = document.createElement('div');
+      card.className = 'recipe-card';
+      
+      let usedHtml = '';
+      r.used.forEach(u => {
+        usedHtml += `<div class="ing-item"><span style="color: var(--primary);"><i class="fa-solid fa-circle-check"></i> ${u}</span><span>冷蔵庫にあり</span></div>`;
+      });
+      
+      let missingHtml = '';
+      r.missing.forEach(m => {
+        // check if already added to shopping list
+        const inShop = shoppingList.find(s => s.name.toLowerCase() === m.toLowerCase());
+        const btnHtml = inShop 
+          ? `<span style="font-size: 0.65rem; color: var(--text-tertiary);">追加済み</span>`
+          : `<button class="add-shopping-btn" onclick="addMissingToShop('${m}')"><i class="fa-solid fa-plus"></i> リストへ</button>`;
+          
+        missingHtml += `<div class="ing-item missing"><span>⚠️ ${m}</span> ${btnHtml}</div>`;
+      });
+      
+      card.innerHTML = `
+        <div class="recipe-header">
+          <div class="recipe-day">${r.day}</div>
+          <div class="recipe-title">${r.title}</div>
+        </div>
+        <div class="recipe-body">
+          <p class="recipe-desc">${r.desc}</p>
+          <div class="recipe-meta">
+            <span class="meta-badge">⏱️ 20分</span>
+            <span class="meta-badge">🔥 簡単</span>
+            <span class="meta-badge">🥦 栄養バランス◎</span>
+          </div>
+          
+          <div class="ing-group">
+            <div class="ing-group-title">使用する冷蔵庫の食材:</div>
+            ${usedHtml}
+          </div>
+          
+          <div class="ing-group" style="margin-top: 12px;">
+            <div class="ing-group-title" style="color: var(--secondary);">足りない買い足し食材:</div>
+            ${missingHtml}
+          </div>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  }
+
+  // Add missing recipe ingredients to shopping list
+  function addMissingToShop(name) {
+    playClickHaptic();
+    shoppingList.push({
+      id: 's_' + Date.now(),
+      name: name,
+      category: name === 'ポン酢' ? 'seasoning' : 'vegetable',
+      quantity: 1,
+      unit: name === 'ポン酢' ? '本' : '個',
+      expiryDays: name === 'ポン酢' ? 120 : 10,
+      storageLocation: name === 'ポン酢' ? 'refrigerator' : 'pantry',
+      price: name === 'ポン酢' ? 250 : 158,
+      emoji: name === 'ポン酢' ? '🧂' : '🥬',
+      checked: false
+    });
+    
+    updateShoppingBadge();
+    renderRecipes();
+    triggerToast(`【${name}】を買い物リストに追加しました！`);
+  }
+
+  // Refrigerator Add Item Modal handling
+  function openAddModal() {
+    playClickHaptic();
+    document.getElementById('addModal').style.display = 'flex';
+    // Clear fields
+    document.getElementById('formName').value = '';
+    document.getElementById('formQty').value = '';
+    document.getElementById('formPrice').value = '';
+    document.getElementById('formExpiryDays').value = '';
+  }
+
+  function closeAddModal() {
+    playClickHaptic();
+    document.getElementById('addModal').style.display = 'none';
+    document.getElementById('autocompleteList').style.display = 'none';
+  }
+
+  function addFormDays(days) {
+    playClickHaptic();
+    document.getElementById('formExpiryDays').value = days;
+  }
+
+  // Autocomplete search matching logic
+  function handleAutocompleteInput(el) {
+    const list = document.getElementById('autocompleteList');
+    const query = el.value.trim().toLowerCase();
+    list.innerHTML = '';
+    
+    if (query === '') {
+      list.style.display = 'none';
+      return;
+    }
+    
+    const matched = masterTemplates.filter(t => t.name.toLowerCase().includes(query));
+    if (matched.length === 0) {
+      list.style.display = 'none';
+      return;
+    }
+    
+    matched.forEach(t => {
+      const item = document.createElement('div');
+      item.className = 'autocomplete-item';
+      item.textContent = `${t.emoji} ${t.name} (目安: ${t.expiryDays}日)`;
+      item.onclick = () => {
+        // Autocomplete autofill properties
+        el.value = t.name;
+        document.getElementById('formCategory').value = t.category;
+        document.getElementById('formQty').value = t.quantity;
+        document.getElementById('formUnit').value = t.unit;
+        document.getElementById('formStorage').value = t.storageLocation;
+        document.getElementById('formExpiryDays').value = t.expiryDays;
+        document.getElementById('formPrice').value = t.price;
+        
+        list.style.display = 'none';
+        playClickHaptic();
+      };
+      list.appendChild(item);
+    });
+    
+    list.style.display = 'block';
+  }
+
+  // Populate quickly from quick choices chips (well used items)
+  function applyQuickHistory(name, cat, qty, unit, days, storage, price) {
+    playClickHaptic();
+    document.getElementById('formName').value = name;
+    document.getElementById('formCategory').value = cat;
+    document.getElementById('formQty').value = qty;
+    document.getElementById('formUnit').value = unit;
+    document.getElementById('formStorage').value = storage;
+    document.getElementById('formExpiryDays').value = days;
+    document.getElementById('formPrice').value = price;
+  }
+
+  // Save new manually added ingredient
+  function saveNewIngredient() {
+    const name = document.getElementById('formName').value.trim();
+    const cat = document.getElementById('formCategory').value;
+    const qty = parseFloat(document.getElementById('formQty').value) || 1.0;
+    const unit = document.getElementById('formUnit').value;
+    const storage = document.getElementById('formStorage').value;
+    const days = parseInt(document.getElementById('formExpiryDays').value) || 7;
+    const price = parseInt(document.getElementById('formPrice').value) || 250;
+    
+    if (name === '') {
+      alert('食材名を入力してください');
+      return;
+    }
+    
+    ingredients.unshift({
+      id: 'i_' + Date.now(),
+      name: name,
+      category: cat,
+      quantity: qty,
+      unit: unit,
+      expiryDays: days,
+      storageLocation: storage,
+      price: price,
+      emoji: categoryEmojis[cat]
+    });
+    
+    closeAddModal();
+    renderIngredients();
+    triggerToast(`【${name}】を冷蔵庫に新しく登録しました！`);
+  }
+
+  // Analytics Reports Panel overlays
+  function openAnalytics() {
+    playClickHaptic();
+    document.getElementById('analyticsModal').style.display = 'flex';
+    document.getElementById('analyticsTotalCount').textContent = `${ingredients.length}品`;
+  }
+
+  function closeAnalytics() {
+    playClickHaptic();
+    document.getElementById('analyticsModal').style.display = 'none';
+  }
+
+  // Dark Mode toggling handler
+  function toggleDarkMode(checkbox) {
+    playClickHaptic();
+    const app = document.getElementById('appContainer');
+    if (checkbox.checked) {
+      app.classList.add('dark-theme');
+      triggerToast('ダークテーマを適用しました');
+    } else {
+      app.classList.remove('dark-theme');
+      triggerToast('ライトテーマを適用しました');
+    }
+  }
+
+  // Receipt Scanner Simulator
+  let scanMethod = 'camera';
+  let mockOcrItems = [];
+
+  function startMockScan(method) {
+    playClickHaptic();
+    scanMethod = method;
+    
+    document.getElementById('scanInitBtns').style.display = 'none';
+    const loader = document.getElementById('scanLoader');
+    loader.style.display = 'flex';
+    
+    // Simulate OCR delay
+    setTimeout(() => {
+      loader.style.display = 'none';
+      document.getElementById('ocrResultView').style.display = 'block';
+      
+      // Load mock items returned by scanner (FastAPI response simulation)
+      mockOcrItems = [
+        { name: 'シャウエッセン', category: 'meat', quantity: 1, unit: '袋', expiryDays: 10, price: 398 },
+        { name: '明治おいしい牛乳', category: 'dairy', quantity: 1, unit: 'L', expiryDays: 7, price: 248 },
+        { name: '長ネギ', category: 'vegetable', quantity: 1, unit: '本', expiryDays: 10, price: 128 },
+        { name: '味の素 ギョーザ', category: 'frozen', quantity: 1, unit: '袋', expiryDays: 60, price: 218 }
+      ];
+      renderOcrRows();
+    }, 1200);
+  }
+
+  function renderOcrRows() {
+    const container = document.getElementById('ocrRowsContainer');
+    container.innerHTML = '';
+    
+    mockOcrItems.forEach((item, index) => {
+      const row = document.createElement('div');
+      row.className = 'ocr-row';
+      row.innerHTML = `
+        <span style="font-size:1.1rem; margin-right:4px;">${categoryEmojis[item.category]}</span>
+        <input type="text" class="ocr-name" value="${item.name}" onchange="mockOcrItems[${index}].name = this.value">
+        <input type="number" class="ocr-qty" value="${item.quantity}" onchange="mockOcrItems[${index}].quantity = parseFloat(this.value)">
+        <span class="ocr-unit" style="font-size:0.7rem; color:var(--text-secondary);">${item.unit}</span>
+        <input type="number" class="ocr-days" value="${item.expiryDays}" onchange="mockOcrItems[${index}].expiryDays = parseInt(this.value)">
+        <span style="font-size:0.65rem; color:var(--text-tertiary);">日</span>
+        <i class="fa-solid fa-circle-minus ocr-del" onclick="deleteOcrRow(${index})"></i>
+      `;
+      container.appendChild(row);
+    });
+  }
+
+  function deleteOcrRow(index) {
+    playClickHaptic();
+    mockOcrItems.splice(index, 1);
+    renderOcrRows();
+  }
+
+  function commitOcrResults() {
+    playClickHaptic();
+    if (mockOcrItems.length === 0) {
+      triggerToast('登録する食材がありません');
+      return;
+    }
+    
+    // Add all to Refrigerator
+    mockOcrItems.forEach(item => {
+      ingredients.unshift({
+        id: 'i_' + Date.now() + Math.random(),
+        name: item.name,
+        category: item.category,
+        quantity: item.quantity,
+        unit: item.unit,
+        expiryDays: item.expiryDays,
+        storageLocation: item.category === 'frozen' ? 'freezer' : 'refrigerator',
+        price: item.price,
+        emoji: categoryEmojis[item.category]
+      });
+    });
+    
+    // Reset view to init
+    document.getElementById('ocrResultView').style.display = 'none';
+    document.getElementById('scanInitBtns').style.display = 'flex';
+    
+    // Switch to fridge tab to see new ingredients
+    switchTab('fridge', document.querySelector('.bottom-nav .nav-item:first-child'));
+    triggerToast(`${mockOcrItems.length}品の食材をレシートから一括登録しました！`);
+  }
+
+  // Initialize
+  renderIngredients();
+  updateShoppingBadge();
+</script>
+
+</body>
+</html>

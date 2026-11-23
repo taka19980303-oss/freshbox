@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- 使用するAPIの種類 -->
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array>
+		<!-- UserDefaults使用（Flutter内部・ Hive） -->
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<!-- CA92.1: アプリの機能に直接関係する設定の読み書き -->
+				<string>CA92.1</string>
+			</array>
+		</dict>
+		<!-- File timestamp access -->
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<!-- C617.1: アプリ自身のファイルのタイムスタンプを表示 -->
+				<string>C617.1</string>
+			</array>
+		</dict>
+	</array>
+
+	<!-- 収集するデータの種類 -->
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array/>
+	<!-- データは収集しない -->
+
+	<!-- トラッキングの有無 -->
+	<key>NSPrivacyTracking</key>
+	<false/>
+
+	<!-- トラッキングドメイン -->
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+</dict>
+</plist>
