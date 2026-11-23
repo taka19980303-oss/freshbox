@@ -1,13 +1,18 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_10y.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 /// ローカルプッシュ通知管理サービス
+///
+/// Web版では flutter_local_notifications が未対応のため、
+/// すべてのメソッドは即座に何もせず戻る（通知はネイティブ版のみ）。
 class NotificationService {
   static final _notifications = FlutterLocalNotificationsPlugin();
 
   /// 初期化処理
   static Future<void> initialize() async {
+    if (kIsWeb) return;
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
@@ -30,6 +35,7 @@ class NotificationService {
     required String title,
     required String body,
   }) async {
+    if (kIsWeb) return;
     const details = NotificationDetails(
       android: AndroidNotificationDetails(
         'freshbox_channel',
@@ -59,6 +65,7 @@ class NotificationService {
     required String name,
     required DateTime expiryDate,
   }) async {
+    if (kIsWeb) return;
     // すでに設定されている同IDの通知をいったんキャンセル
     await cancelNotification(id);
 
@@ -106,6 +113,7 @@ class NotificationService {
 
   /// アラート通知をキャンセル
   static Future<void> cancelNotification(String id) async {
+    if (kIsWeb) return;
     await _notifications.cancel(id.hashCode);
   }
 }
