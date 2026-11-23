@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'data/services/hive_service.dart';
 import 'data/services/notification_service.dart';
@@ -9,6 +11,12 @@ import 'app.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Web版: Noto Sans JP の都度ダウンロードを止め、OS標準フォントを使う
+  // （iOSならヒラギノ角ゴ）。フォント待ちと差し替えのチラつきをなくし体感を速くする。
+  if (kIsWeb) {
+    GoogleFonts.config.allowRuntimeFetching = false;
+  }
 
   // 日本語ロケール初期化
   await initializeDateFormatting('ja', null);

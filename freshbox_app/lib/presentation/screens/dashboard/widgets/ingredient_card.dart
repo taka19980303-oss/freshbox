@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -323,7 +324,7 @@ class IngredientCard extends ConsumerWidget {
         ),
       ),
     )
-        .animate(delay: (index * 60).ms)
+        .animate(delay: kIsWeb ? Duration.zero : (index * 60).ms)
         .fadeIn(duration: 350.ms)
         .slideX(begin: 0.08, end: 0, duration: 350.ms, curve: Curves.easeOut);
   }

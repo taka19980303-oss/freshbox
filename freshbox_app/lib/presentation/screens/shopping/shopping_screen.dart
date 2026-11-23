@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -513,7 +514,7 @@ class _ShoppingItemCard extends ConsumerWidget {
         ),
       ),
     )
-        .animate(delay: (index * 40).ms)
+        .animate(delay: kIsWeb ? Duration.zero : (index * 40).ms)
         .fadeIn(duration: 300.ms)
         .slideX(begin: 0.05, end: 0, duration: 300.ms, curve: Curves.easeOut);
   }

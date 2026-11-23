@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -201,7 +202,7 @@ class RecipeCard extends StatelessWidget {
         ),
       ),
     )
-        .animate(delay: (index * 120).ms)
+        .animate(delay: kIsWeb ? Duration.zero : (index * 120).ms)
         .fadeIn(duration: 500.ms)
         .slideY(begin: 0.15, end: 0, duration: 450.ms, curve: Curves.easeOut);
   }

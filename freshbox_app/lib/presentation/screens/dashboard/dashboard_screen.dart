@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -224,7 +225,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         label: const Text('食材を追加'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
-      ).animate().scale(delay: 400.ms, duration: 300.ms),
+      ).animate().scale(delay: kIsWeb ? Duration.zero : 400.ms, duration: 300.ms),
     );
   }
 }
@@ -346,7 +347,7 @@ class _SummaryCard extends StatelessWidget {
         ),
       ),
     )
-        .animate(delay: (index * 80).ms)
+        .animate(delay: kIsWeb ? Duration.zero : (index * 80).ms)
         .fadeIn(duration: 350.ms)
         .scale(
           begin: const Offset(0.9, 0.9),

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../../data/models/ingredient.dart';
@@ -63,7 +64,7 @@ class CategorySelector extends StatelessWidget {
               ],
             ),
           ),
-        ).animate(delay: (i * 40).ms).fadeIn(duration: 250.ms).scale(
+        ).animate(delay: kIsWeb ? Duration.zero : (i * 40).ms).fadeIn(duration: 250.ms).scale(
               begin: const Offset(0.85, 0.85),
               end: const Offset(1, 1),
               duration: 250.ms,

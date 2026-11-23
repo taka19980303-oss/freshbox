@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -107,7 +108,7 @@ class SettingsScreen extends StatelessWidget {
                         showArrow: true,
                       ),
                     ],
-                  ).animate(delay: 50.ms).fadeIn(duration: 400.ms),
+                  ).animate(delay: kIsWeb ? Duration.zero : 50.ms).fadeIn(duration: 400.ms),
 
                   const SizedBox(height: 24),
 
@@ -153,7 +154,7 @@ class SettingsScreen extends StatelessWidget {
                         onTap: null,
                       ),
                     ],
-                  ).animate(delay: 100.ms).fadeIn(duration: 400.ms),
+                  ).animate(delay: kIsWeb ? Duration.zero : 100.ms).fadeIn(duration: 400.ms),
 
                   const SizedBox(height: 24),
 
@@ -179,7 +180,7 @@ class SettingsScreen extends StatelessWidget {
                         showArrow: true,
                       ),
                     ],
-                  ).animate(delay: 200.ms).fadeIn(duration: 400.ms),
+                  ).animate(delay: kIsWeb ? Duration.zero : 200.ms).fadeIn(duration: 400.ms),
 
                   const SizedBox(height: 24),
 
@@ -200,7 +201,7 @@ class SettingsScreen extends StatelessWidget {
                         showArrow: true,
                       ),
                     ],
-                  ).animate(delay: 300.ms).fadeIn(duration: 400.ms),
+                  ).animate(delay: kIsWeb ? Duration.zero : 300.ms).fadeIn(duration: 400.ms),
 
                   const SizedBox(height: 40),
 
@@ -221,7 +222,7 @@ class SettingsScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                  ).animate(delay: 400.ms).fadeIn(duration: 400.ms),
+                  ).animate(delay: kIsWeb ? Duration.zero : 400.ms).fadeIn(duration: 400.ms),
 
                   const SizedBox(height: 40),
                 ],

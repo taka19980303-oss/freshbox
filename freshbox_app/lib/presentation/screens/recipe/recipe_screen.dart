@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -240,7 +241,7 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> with SingleTickerPr
             label: const Text('レシピを更新'),
             backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,
-          ).animate().scale(delay: 500.ms, duration: 300.ms),
+          ).animate().scale(delay: kIsWeb ? Duration.zero : 500.ms, duration: 300.ms),
         );
       },
       loading: () => _buildLoadingState(context),
